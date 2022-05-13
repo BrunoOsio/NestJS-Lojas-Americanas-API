@@ -33,7 +33,7 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  @Delete()
+  @Delete("dev/removeAll")
   removeAll() {
     return this.userService.removeAll();
   }
