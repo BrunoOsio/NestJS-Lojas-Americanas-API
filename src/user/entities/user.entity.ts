@@ -15,7 +15,7 @@ export class User {
   @OneToMany(
     () => Product, 
     product => product.owner,
-    { onDelete: "CASCADE" } //TODO verificar se está correto. Testar com SET NULL
+    { onDelete: "SET NULL" }
   )
   products: Product[];
 }

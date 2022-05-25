@@ -12,6 +12,7 @@ export class Product {
   @ManyToOne(
     () => User,
     user => user.products,
+    { onDelete: "SET NULL" }
   )
   owner: User;
 }
