@@ -1,10 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { AddUserToProductDto } from './dto/add-user-to-product.dto';
 import { Product } from './entities/product.entity';
-import { RemoveUserToProductDto } from './dto/remove-user-to-product.dto';
 
 @Controller('products')
 export class ProductController {
@@ -13,45 +21,81 @@ export class ProductController {
   @Post()
   create(
     @Body() createProductDto: CreateProductDto,
-    @Query("userId") userId?: number
+    @Query('userId') userId?: number,
   ): Promise<Product> {
     return this.productService.create(createProductDto, userId);
   }
 
   @Get()
-  findAll(): Promise<Product[]>{
+  findAll(): Promise<Product[]> {
     return this.productService.findAll();
   }
 
-  @Get("raw")
-  findAllRaw(): Promise<Product[]>{
+  @Get('raw')
+  findAllRaw(): Promise<Product[]> {
     return this.productService.findAllRaw();
   }
 
+  @Get('withOwners')
+  findAllWithOwners(): Promise<Product[]> {
+    return this.productService.findByQuery({ hasOwner: true });
+  }
+
+  @Get('withoutOwners')
+  findAllWithoutOwners(): Promise<Product[]> {
+    return this.productService.findByQuery({ hasOwner: false });
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Product> {
-    return this.productService.findOne(+id);
+  findById(@Param('id') id: number): Promise<Product> {
+    return this.productService.findById(+id);
+  }
+
+  @Get('name/:name')
+  findByName(@Param('name') name: string): Promise<Product[]> {
+    return this.productService.findByQuery({ name: name, hasOwner: true });
+  }
+
+  @Get('owner/:id')
+  findByOwner(@Param('id') id: number): Promise<Product[]> {
+    return this.productService.findByQuery({ ownerId: id });
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string, 
-    @Body() updateProductDto: UpdateProductDto
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
   ): Promise<Product> {
     return this.productService.update(+id, updateProductDto);
   }
 
-  @Post("addUser")
+  @Patch('/:productId/addUser/:userId')
   addUser(
-    @Body() addUserToProduct: AddUserToProductDto,
+    @Param('productId') productId: number,
+    @Param('userId') userId: number,
   ): Promise<Product> {
-
-    return this.productService.addUser(addUserToProduct);
+    return this.productService.addUser(productId, userId);
   }
 
-  @Post("removeUser")
-  removeUser(@Body() removeUserToProductDto: RemoveUserToProductDto): Promise<Product> {
-    return this.productService.removeUser(removeUserToProductDto);
+  @Patch('/:productId/removeUser')
+  removeUser(@Param('productId') productId: number): Promise<Product> {
+    return this.productService.removeUser(productId);
+  }
+
+  @Patch('/:productId/addCategory/:categoryId')
+  addCategory(
+    @Param('productId') productId: number,
+    @Param('categoryId') categoryId: number,
+  ): Promise<Product> {
+    return this.productService.addCategory(productId, categoryId);
+  }
+
+  @Patch("/:productId/removeCategory/:categoryId")
+  removeCategory(
+    @Param('productId') productId: number,
+    @Param('categoryId') categoryId: number
+  ): Promise<Product> {
+    return this.productService.removeCategory(productId, categoryId);
   }
 
   @Delete(':id')
@@ -59,7 +103,7 @@ export class ProductController {
     return this.productService.remove(+id);
   }
 
-  @Delete("/dev/removeAll")
+  @Delete('/dev/removeAll')
   removeAll(): Promise<void> {
     return this.productService.removeAll();
   }

@@ -1,5 +1,6 @@
 import { User } from "../../user/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Category } from "src/category/entities/category.entity";
 
 @Entity()
 export class Product {
@@ -15,4 +16,11 @@ export class Product {
     { onDelete: "SET NULL" }
   )
   owner: User;
+
+  @ManyToMany(
+    () => Category, 
+    category => category.products
+  )
+  @JoinTable({name: "product_category"})
+  categories: Category[];
 }
