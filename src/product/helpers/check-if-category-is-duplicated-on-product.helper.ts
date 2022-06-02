@@ -1,15 +1,12 @@
-import { Category } from "src/category/entities/category.entity";
 import { isDeepStrictEqual } from "util";
 
-const checkIfNewCategoryIsDuplicatedOnProduct = (productCategories: Category[], newCategory: Category): boolean => {
-  const checkIfNewCategoryIsDuplicated = (categoryOnProduct) => 
-  isDeepStrictEqual(categoryOnProduct, newCategory);
-
-  const isCategoryDuplicatedOnProduct = productCategories.some(
-    checkIfNewCategoryIsDuplicated,
+function checkIfIsDuplicated<T>(itemsArray: T[], item: T): boolean {
+  const isDuplicated = itemsArray.some(
+    (itemOnArray) => 
+      isDeepStrictEqual(itemOnArray, item)
   );
 
-  return isCategoryDuplicatedOnProduct
+  return isDuplicated
 }
 
-export default checkIfNewCategoryIsDuplicatedOnProduct;
+export default checkIfIsDuplicated;

@@ -18,8 +18,8 @@ import showTerminalQuery from 'src/shared/helpers/show-terminal-query.helper';
 import { CategoryService } from 'src/category/category.service';
 import { CategoryNotFoundOnProductException } from './exception/category-not-found-on-product.exception';
 import { DuplicatedCategoryOnProductException } from './exception/category-is-setted-on-product.exception';
-import { isDeepStrictEqual } from 'util';
 import checkIfCategoryIsDuplicatedOnProduct from './helpers/check-if-category-is-duplicated-on-product.helper';
+import checkIfIsDuplicated from './helpers/check-if-category-is-duplicated-on-product.helper';
 
 @Injectable()
 export class ProductService {
@@ -173,7 +173,7 @@ export class ProductService {
     const productCategories = updatedProduct.categories;
     const newCategory = await this.categoryService.findOne(categoryId);
 
-    const isDuplicated = checkIfCategoryIsDuplicatedOnProduct(productCategories, newCategory);
+    const isDuplicated = checkIfIsDuplicated(productCategories, newCategory);
 
     if (isDuplicated)
       throw new DuplicatedCategoryOnProductException(productId, categoryId);
