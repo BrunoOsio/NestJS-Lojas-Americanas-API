@@ -114,16 +114,15 @@ export class ProductService {
     return productsWithoutCategory;
   }
 
-  //TODO refactor
   async findByCategory(categoryId: number): Promise<Product[]> {
     const products = await this.findAll();
-    console.log(categoryId);
-    const productsWithCategory = [];
+
+    let productsWithCategory = [];
 
     products.map(product => {
-      const productsMatched = product.categories.filter(category => category.id == categoryId);
+      const categoryMatches = product.categories.some(category => category.id == categoryId);
 
-      productsWithCategory.push(...productsMatched);
+      if (categoryMatches) productsWithCategory.push(product);
     });
 
     return productsWithCategory;
