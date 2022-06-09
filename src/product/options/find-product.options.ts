@@ -3,6 +3,8 @@ export class FindProductOptions {
   name?: string;
   hasOwner?: boolean;
   ownerId?: number;
+  hasCategory?: boolean;
+  categoryId?: number;
 }
 
 export enum ProductFindParameter{

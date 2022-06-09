@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'src/user/user.service';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Equal, getConnection, IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
@@ -20,10 +20,14 @@ import { CategoryNotFoundOnProductException } from './exception/category-not-fou
 import { DuplicatedCategoryOnProductException } from './exception/category-is-setted-on-product.exception';
 import checkIfCategoryIsDuplicatedOnProduct from './helpers/check-if-category-is-duplicated-on-product.helper';
 import checkIfIsDuplicated from './helpers/check-if-category-is-duplicated-on-product.helper';
+import { CategoryAmountExccededException } from './exception/category-amount-exccedded.exception';
+import { isEmpty } from 'class-validator';
+import { equal } from 'assert';
 
 @Injectable()
 export class ProductService {
   private readonly PRODUCT_RELATIONS = { relations: ['owner', 'categories'] };
+  private readonly MAX_CATEGORIES_PER_PRODUCT = 3;
 
   constructor(
     @InjectRepository(Product)
@@ -66,6 +70,18 @@ export class ProductService {
 
     return products;
   }
+  async findAllPaginated(page = 1): Promise<Product[]> {
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const products = await this.productRepository.find({
+      take: limit,
+      skip: offset,
+      ...this.PRODUCT_RELATIONS,
+    });
+
+    return products;
+  }
 
   async findAllRaw(): Promise<Product[]> {
     const products = await this.productRepository.find();
@@ -80,6 +96,37 @@ export class ProductService {
     );
 
     return product;
+  }
+
+  async findWithCategories(): Promise<Product[]> {
+  const products = await this.productRepository.find(this.PRODUCT_RELATIONS);
+
+  const productsWithCategories = products.filter(product => product.categories.length > 0);
+
+  return productsWithCategories;
+  }
+
+  async findWithoutCategories(): Promise<Product[]> {
+    const products = await this.productRepository.find(this.PRODUCT_RELATIONS);
+  
+    const productsWithoutCategory = products.filter(product => product.categories.length == 0);
+  
+    return productsWithoutCategory;
+  }
+
+  //TODO refactor
+  async findByCategory(categoryId: number): Promise<Product[]> {
+    const products = await this.findAll();
+    console.log(categoryId);
+    const productsWithCategory = [];
+
+    products.map(product => {
+      const productsMatched = product.categories.filter(category => category.id == categoryId);
+
+      productsWithCategory.push(...productsMatched);
+    });
+
+    return productsWithCategory;
   }
 
   //TODO needs refactoration on query
@@ -126,6 +173,8 @@ export class ProductService {
       ...this.PRODUCT_RELATIONS,
     });
 
+    console.log(this.productRepository.count({where: { categories: Not(IsNull()) }}));
+
     return product;
   }
 
@@ -171,12 +220,19 @@ export class ProductService {
     const updatedProduct = await this.findById(productId);
 
     const productCategories = updatedProduct.categories;
+
+    const isMaxCategories = productCategories.length == this.MAX_CATEGORIES_PER_PRODUCT;
+
+    if (isMaxCategories) 
+      throw new CategoryAmountExccededException(productId);
+
     const newCategory = await this.categoryService.findOne(categoryId);
 
     const isDuplicated = checkIfIsDuplicated(productCategories, newCategory);
 
     if (isDuplicated)
       throw new DuplicatedCategoryOnProductException(productId, categoryId);
+    
 
     updatedProduct.categories.push(newCategory);
 

@@ -13,6 +13,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { PaginationOptions } from 'src/shared/options/pagination.options';
 
 @Controller('products')
 export class ProductController {
@@ -31,6 +32,11 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  @Get("paginated")
+  findAllPaginated(@Query("page") page: number): Promise<Product[]> {
+    return this.productService.findAllPaginated(page);
+  }
+
   @Get('raw')
   findAllRaw(): Promise<Product[]> {
     return this.productService.findAllRaw();
@@ -46,6 +52,21 @@ export class ProductController {
     return this.productService.findByQuery({ hasOwner: false });
   }
 
+  @Get('withCategories')
+  findAllWithCategories() {
+    return this.productService.findWithCategories();
+  }
+
+  @Get('withoutCategories')
+  findAllWithoutCategories() {
+    return this.productService.findWithoutCategories();
+  }
+
+  @Get("category/:id")
+  findByCategory(@Param("id") id: number): Promise<Product[]> {
+    return this.productService.findByCategory(id);
+  }
+  
   @Get(':id')
   findById(@Param('id') id: number): Promise<Product> {
     return this.productService.findById(+id);
