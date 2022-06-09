@@ -23,6 +23,7 @@ import checkIfIsDuplicated from './helpers/check-if-category-is-duplicated-on-pr
 import { CategoryAmountExccededException } from './exception/category-amount-exccedded.exception';
 import { isEmpty } from 'class-validator';
 import { equal } from 'assert';
+import pagination from 'src/shared/pagination/pagination';
 
 @Injectable()
 export class ProductService {
@@ -71,12 +72,12 @@ export class ProductService {
     return products;
   }
   async findAllPaginated(page = 1): Promise<Product[]> {
-    const limit = 10;
-    const offset = (page - 1) * limit;
+
+    const paginationOptions = pagination(page);
 
     const products = await this.productRepository.find({
-      take: limit,
-      skip: offset,
+      ...paginationOptions,
+      
       ...this.PRODUCT_RELATIONS,
     });
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import pagination from 'src/shared/pagination/pagination';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -23,6 +24,13 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     const users = await this.userRepository.find();
+
+    return users;
+  }
+
+  async findAllPaginated(page = 1): Promise<User[]> {
+    const paginationOptions = pagination(page);
+    const users = await this.userRepository.find(paginationOptions);
 
     return users;
   }
